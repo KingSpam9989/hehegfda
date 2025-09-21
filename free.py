@@ -3,16 +3,26 @@ import time
 import sys
 import os
 from datetime import datetime, timedelta
+from colorama import init, Fore, Style
 
-# ANSI colors cầu vồng
+# Khởi tạo colorama
+init(autoreset=True)
+
+# ANSI colors cầu vồng (dùng colorama để chắc chắn hiển thị mọi terminal)
 RAINBOW = [
-    "\033[91m", "\033[93m", "\033[92m", "\033[96m",
-    "\033[94m", "\033[95m", "\033[97m",
+    Fore.RED,
+    Fore.YELLOW,
+    Fore.GREEN,
+    Fore.CYAN,
+    Fore.BLUE,
+    Fore.MAGENTA,
+    Fore.WHITE,
 ]
-RESET = "\033[0m"
-CYAN = "\033[96m"
-YELLOW = "\033[93m"
-GREEN = "\033[92m"
+
+CYAN = Fore.CYAN
+YELLOW = Fore.YELLOW
+GREEN = Fore.GREEN
+RESET = Style.RESET_ALL
 
 endpoint = "https://api.tqxc25.dpdns.org/buffviewtik"
 
@@ -65,6 +75,21 @@ def cleanup_file():
                 if datetime.now().timestamp() > expire_timestamp:
                     os.remove("remain.txt")
                     print(f"{CYAN}🗑️ File remain.txt đã hết hạn và đã xóa.{RESET}")
+
+# Progress bar cầu vồng sống động
+def rainbow_progress_bar(seconds):
+    bar_length = 30
+    for i in range(seconds, 0, -1):
+        done = seconds - i
+        filled = int(bar_length * done / seconds)
+        bar = ""
+        for j in range(bar_length):
+            color = RAINBOW[(j + int(time.time()*10)) % len(RAINBOW)]
+            bar += color + ("█" if j < filled else "-") + RESET
+        sys.stdout.write(f"\r[{bar}] {i}s còn lại")
+        sys.stdout.flush()
+        time.sleep(1)
+    print()  # xuống dòng
 
 # Kiểm tra file cũ
 cleanup_file()
@@ -119,24 +144,9 @@ while total_sent < MAX_TOTAL:
     except:
         pass
 
-    # Progress bar cầu vồng
-    print(f"\n⏳ Đang đếm ngược {time_delay} giây...\n")
-    bar_length = 30
-    for i in range(time_delay, 0, -1):
-        done = time_delay - i
-        filled = int(bar_length * done / time_delay)
-        bar = ""
-        for j in range(bar_length):
-            color = RAINBOW[j % len(RAINBOW)]
-            if j < filled:
-                bar += f"{color}█{RESET}"
-            else:
-                bar += f"{color}-{RESET}"
-        sys.stdout.write(f"\r[{bar}] {i}s còn lại")
-        sys.stdout.flush()
-        time.sleep(1)
+    rainbow_progress_bar(time_delay)
     
-    print(f"\n{GREEN}✅ Hoàn thành lần gửi!{RESET}")
+    print(f"{GREEN}✅ Hoàn thành lần gửi!{RESET}")
 
     if total_sent >= MAX_TOTAL:
         print(f"\n{CYAN}🎉 Đã đạt tổng thời gian tối đa 1000 giây, không thể gửi thêm.{RESET}")
@@ -156,7 +166,7 @@ while total_sent < MAX_TOTAL:
         else:
             print(f"{YELLOW}⚠️  Vui lòng nhập y (có) hoặc n (không).{RESET}")
 
-# Pháo hoa ASCII cuối
+# Pháo hoa ASCII cầu vồng
 fireworks = [
     "      *       ",
     "     ***      ",
